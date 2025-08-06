@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "349885121476",
+    "project_id": "clubconnect-2025",
+    "storage_bucket": "clubconnect-2025.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:349885121476:android:fccfc259e9b01a2dcc5a91",
+        "android_client_info": {
+          "package_name": "com.example.flutter_club_connect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAh7PH0zK8XCXxLho7StaGzWySik9LOGB8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
