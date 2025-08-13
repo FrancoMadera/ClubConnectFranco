@@ -15,6 +15,8 @@ import 'package:flutter_club_connect/pages/public/noticiafutbolfemenino.dart';
 import 'package:flutter_club_connect/pages/public/plantelfemenino.dart';
 import 'package:flutter_club_connect/pages/admin/admin_noticias_screen.dart';
 import 'package:flutter_club_connect/pages/admin/login_screen.dart';
+import 'package:flutter_club_connect/pages/public/contacto.dart';
+
 
 
 
@@ -126,6 +128,8 @@ class _MyAppState extends State<MyApp> {
         '/admin': (context) => const AdminDashboardScreen(),
         '/admin/noticias': (context) => const AdminNoticiasScreen(),
         '/admin/login_screen': (context) => const LoginScreen(),
+        '/contacto': (context) => const ContactoScreen(),
+
 
 
       },

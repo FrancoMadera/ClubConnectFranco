@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_club_connect/service/noticiasservice.dart';
 import 'package:flutter_club_connect/models/noticia.dart';
 import 'package:flutter_club_connect/pages/public/detallenoticia.dart';
+import 'package:flutter/services.dart'; // para SystemNavigator.pop()
 import '/utils/styles.dart';
 
 
@@ -238,22 +239,56 @@ Future<void> _refreshNews() async {
           ],
         ),
 
+        //Contacto
+        ListTile(
+        leading: const Icon(Icons.contact_phone, color: Colors.orange),
+        title: const Text('Contacto'),
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, '/contacto');
+        },
+      ),
 
-        // Básquet
-       /* ListTile(
-         // leading: Icon(Icons.sports_basketball, color: redColor),
-          title: const Text(
-            'Básquet',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.pushNamed(context, '/basquet');
-          },
+          //Cerrar App
+          ListTile(
+        leading: const Icon(Icons.exit_to_app, color: Colors.red),
+        title: const Text(
+          'Cerrar App',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         ),
+        onTap: () {
+          Navigator.pop(context); // cerrar el drawer
 
+          // Mostrar mensaje de despedida
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('¡Gracias!'),
+                content: const Text('Gracias por usar la app oficial del Club. ¡Te esperamos pronto!'),
+                actions: [
+                  TextButton(
+                    child: const Text('Cancelar'),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // cerrar el diálogo
+                    },
+                  ),
+                  TextButton(
+                    child: const Text('Cerrar App'),
+                    onPressed: () {
+                      SystemNavigator.pop(); // cierra la app
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
 
-        // Más Deportes
+        
+      
+       /* // Más Deportes
         ListTile(
           leading: Icon(Icons.sports, color: redColor),
           title: const Text(
@@ -264,20 +299,6 @@ Future<void> _refreshNews() async {
             Navigator.pop(context);
             Navigator.
             pushNamed(context, '/mas-deportes');
-          },
-        ),
-
-
-        // Multimedia
-        ListTile(
-          leading: Icon(Icons.perm_media, color: redColor),
-          title: const Text(
-            'Multimedia',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.pushNamed(context, '/multimedia');
           },
         ),*/
       ],
