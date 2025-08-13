@@ -47,8 +47,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.system; // Estado inicial
-
+ 
   @override
   void initState() {
     super.initState();
@@ -90,12 +89,7 @@ class _MyAppState extends State<MyApp> {
     // También podés guardar el token en Firestore si querés
   }
 
-  void _cambiarTema(ThemeMode modo) {
-    setState(() {
-      _themeMode = modo;
-    });
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -118,10 +112,8 @@ class _MyAppState extends State<MyApp> {
           foregroundColor: Colors.white,
         ),
       ),
-      themeMode: _themeMode,
       scaffoldMessengerKey: scaffoldMessengerKey,
       home: const PantallaCarga(),
-      
       routes: {
         '/historia': (context) => const HistoriaScreen(),
         '/futbol-profesional': (context) => const NoticiasFutbolProfesionalScreen(),
@@ -137,8 +129,7 @@ class _MyAppState extends State<MyApp> {
         '/admin/login_screen': (context) => const LoginScreen(),
         '/contacto': (context) => const ContactoScreen(),
         '/ajustes': (context) => AjustesScreen(
-              currentThemeMode: _themeMode,
-              onThemeChanged: _cambiarTema,
+              
             ),
       },
     );

@@ -57,9 +57,7 @@
 
     <!-- Queries necesarias para texto -->
     <queries>
-        <intent>
-            <uses-permission android:name="android.permission.INTERNET"/>
-        <intent>
+        
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />

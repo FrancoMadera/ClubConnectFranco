@@ -38,14 +38,6 @@ Future<void> _refreshNews() async {
   await _noticiasFuture;
 }
 
-  ThemeMode _themeMode = ThemeMode.system;
-
-  void _cambiarTema(ThemeMode modo) {
-    setState(() {
-      _themeMode = modo;
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -265,8 +257,6 @@ Future<void> _refreshNews() async {
       onTap: () {
         Navigator.pop(context); // cierra el drawer
         Navigator.push(context, MaterialPageRoute(builder: (_) => AjustesScreen(
-        currentThemeMode: _themeMode,
-        onThemeChanged: _cambiarTema,
         )
         )
         );

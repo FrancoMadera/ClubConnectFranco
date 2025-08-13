@@ -27,9 +27,9 @@ dependencies:
   logger: ^2.0.2
   image_picker: ^1.0.4
   flutter_local_notifications: ^17.0.0
+  shared_preferences: ^2.1.1
   url_launcher: ^6.2.5
-  font_awesome_flutter: ^10.7.0
-
+  font_awesome_flutter: ^10.4.0
 
 dev_dependencies:
   flutter_test:

@@ -1,27 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AjustesScreen extends StatefulWidget {
-  final ThemeMode currentThemeMode;
-  final ValueChanged<ThemeMode> onThemeChanged;
-
-  const AjustesScreen({
-    super.key,
-    required this.currentThemeMode,
-    required this.onThemeChanged,
-  });
+  const AjustesScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _AjustesScreenState createState() => _AjustesScreenState();
 }
 
 class _AjustesScreenState extends State<AjustesScreen> {
-  late ThemeMode _selectedThemeMode;
+  bool _notificacionesHabilitadas = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedThemeMode = widget.currentThemeMode;
+  Future<void> _abrirInstagram() async {
+    final uri = Uri.parse('https://www.instagram.com/club9dejuliooficial/');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('No se pudo abrir Instagram');
+    }
+  }
+
+  void _toggleNotificaciones(bool valor) async {
+    setState(() {
+      _notificacionesHabilitadas = valor;
+    });
+
+    if (valor) {
+      // Suscribirse al topic "noticias"
+      await FirebaseMessaging.instance.subscribeToTopic('noticias');
+    } else {
+      // Cancelar suscripción
+      await FirebaseMessaging.instance.unsubscribeFromTopic('noticias');
+    }
   }
 
   @override
@@ -30,44 +40,19 @@ class _AjustesScreenState extends State<AjustesScreen> {
       appBar: AppBar(title: const Text('Ajustes')),
       body: ListView(
         children: [
-          RadioListTile<ThemeMode>(
-            title: const Text('Claro'),
-            value: ThemeMode.light,
-            groupValue: _selectedThemeMode,
-            onChanged: (modo) {
-              if (modo != null) {
-                setState(() {
-                  _selectedThemeMode = modo;
-                  widget.onThemeChanged(modo);
-                });
-              }
-            },
+          ListTile(
+            leading: const FaIcon(FontAwesomeIcons.instagram, color: Colors.purple),
+            title: const Text('Instagram del Club'),
+            subtitle: const Text('@club9dejuliooficial'),
+            onTap: _abrirInstagram,
           ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Oscuro'),
-            value: ThemeMode.dark,
-            groupValue: _selectedThemeMode,
-            onChanged: (modo) {
-              if (modo != null) {
-                setState(() {
-                  _selectedThemeMode = modo;
-                  widget.onThemeChanged(modo);
-                });
-              }
-            },
-          ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Automático'),
-            value: ThemeMode.system,
-            groupValue: _selectedThemeMode,
-            onChanged: (modo) {
-              if (modo != null) {
-                setState(() {
-                  _selectedThemeMode = modo;
-                  widget.onThemeChanged(modo);
-                });
-              }
-            },
+          const Divider(),
+          SwitchListTile(
+            title: const Text('Notificaciones'),
+            subtitle: const Text('Habilitar o deshabilitar notificaciones del club'),
+            value: _notificacionesHabilitadas,
+            onChanged: _toggleNotificaciones,
+            secondary: const Icon(Icons.notifications_active, color: Colors.red),
           ),
         ],
       ),
