@@ -5,6 +5,8 @@ import 'package:flutter_club_connect/pages/public/detallenoticia.dart';
 import 'package:flutter/services.dart'; // para SystemNavigator.pop()
 import 'ajustes.dart';  // Ajustá la ruta según corresponda
 import '/utils/styles.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 
 class NoticiasScreen extends StatefulWidget {
@@ -89,9 +91,8 @@ Future<void> _refreshNews() async {
   }
 
 
-  Widget _buildDrawer(BuildContext context) {
+Widget _buildDrawer(BuildContext context) {
   final Color redColor = const Color(0xFFB71C1C);
-
 
   return Drawer(
     child: ListView(
@@ -125,7 +126,6 @@ Future<void> _refreshNews() async {
           ),
         ),
 
-
         // Club con dos subsecciones
         ExpansionTile(
           leading: Icon(Icons.account_balance, color: redColor),
@@ -143,16 +143,23 @@ Future<void> _refreshNews() async {
               },
             ),
             _buildDrawerSubItem(
-              icon: Icons.location_on,
-              title: 'Ubicación',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/ubicacion');
-              },
-            ),
+            icon: Icons.location_on,
+            title: 'Ubicación',
+            onTap: () async {
+              Navigator.pop(context);
+
+              final url = Uri.parse(
+                'https://www.google.com/maps/place/Club+9+de+Julio/@-31.2487271,-61.5020428,17z/data=!4m10!1m2!2m1!1sclub+atletico+9+de+julio+rafaela!3m6!1s0x95caae3c4e30e021:0x56b28c02d1ad0d21!8m2!3d-31.2481566!4d-61.4977544!15sCiBjbHViIGF0bGV0aWNvIDkgZGUganVsaW8gcmFmYWVsYVoiIiBjbHViIGF0bGV0aWNvIDkgZGUganVsaW8gcmFmYWVsYZIBDnNwb3J0c19jb21wbGV4mgEkQ2hkRFNVaE5NRzluUzBWSlEwRm5TVVJ0TmpWMlpteG5SUkFCqgFnEAEqHCIYY2x1YiBhdGxldGljbyA5IGRlIGp1bGlvKA4yHxABIhuYJWwi-Jb8E5qflPE2qIomwqRnFdHq18INomoyJBACIiBjbHViIGF0bGV0aWNvIDkgZGUganVsaW8gcmFmYWVsYeABAPoBBAgAEBw!16s%2Fg%2F11bych7qh6?authuser=0&entry=ttu&g_ep=EgoyMDI1MDgxMS4wIKXMDSoASAFQAw%3D%3D'
+              );
+
+              if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                debugPrint('No se pudo abrir Google Maps');
+              }
+            },
+          ),
+            
           ],
         ),
-
 
         // Fútbol con subsecciones anidadas
         ExpansionTile(
@@ -162,8 +169,6 @@ Future<void> _refreshNews() async {
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           ),
           children: [
-
-
             // Fútbol Profesional
             ExpansionTile(
               title: const Text('Fútbol Profesional'),
@@ -186,7 +191,6 @@ Future<void> _refreshNews() async {
                 ),
               ],
             ),
-
 
             // Fútbol Amateur
             ExpansionTile(
@@ -211,7 +215,6 @@ Future<void> _refreshNews() async {
               ],
             ),
 
-
             // Fútbol Femenino
             ExpansionTile(
               title: const Text('Fútbol Femenino'),
@@ -234,91 +237,68 @@ Future<void> _refreshNews() async {
                 ),
               ],
             ),
-
-
           ],
         ),
 
-        //Contacto
+        // Contacto
         ListTile(
-        leading: const Icon(Icons.contact_phone, color: Colors.orange),
-        title: const Text('Contacto'),
-        onTap: () {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, '/contacto');
-        },
-      ),
-
-
-    //Ajustes
-    ListTile(
-      leading: const Icon(Icons.settings),
-      title: const Text('Ajustes'),
-      onTap: () {
-        Navigator.pop(context); // cierra el drawer
-        Navigator.push(context, MaterialPageRoute(builder: (_) => AjustesScreen(
-        )
-        )
-        );
-      }
-    ),
-          //Cerrar App
-          ListTile(
-        leading: const Icon(Icons.exit_to_app, color: Colors.red),
-        title: const Text(
-          'Cerrar App',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          leading: const Icon(Icons.contact_phone, color: Colors.orange),
+          title: const Text('Contacto'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(context, '/contacto');
+          },
         ),
-        onTap: () {
-          Navigator.pop(context); // cerrar el drawer
 
-          // Mostrar mensaje de despedida
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('¡Gracias!'),
-                content: const Text('Gracias por usar la app oficial del Club. ¡Te esperamos pronto!'),
-                actions: [
-                  TextButton(
-                    child: const Text('Cancelar'),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // cerrar el diálogo
-                    },
-                  ),
-                  TextButton(
-                    child: const Text('Cerrar App'),
-                    onPressed: () {
-                      SystemNavigator.pop(); // cierra la app
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ),
-
-        
-      
-       /* // Más Deportes
+        // Ajustes
         ListTile(
-          leading: Icon(Icons.sports, color: redColor),
+          leading: const Icon(Icons.settings),
+          title: const Text('Ajustes'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (_) => AjustesScreen()));
+          },
+        ),
+
+        // Cerrar App
+        ListTile(
+          leading: const Icon(Icons.exit_to_app, color: Colors.red),
           title: const Text(
-            'Más Deportes',
+            'Cerrar App',
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           ),
           onTap: () {
             Navigator.pop(context);
-            Navigator.
-            pushNamed(context, '/mas-deportes');
+
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('¡Gracias!'),
+                  content: const Text('Gracias por usar la app oficial del Club. ¡Te esperamos pronto!'),
+                  actions: [
+                    TextButton(
+                      child: const Text('Cancelar'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Cerrar App'),
+                      onPressed: () {
+                        SystemNavigator.pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
           },
-        ),*/
+        ),
       ],
     ),
   );
 }
-
 
   Widget _buildDrawerSubItem({
     required IconData icon,
