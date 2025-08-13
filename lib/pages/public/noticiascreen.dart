@@ -3,6 +3,7 @@ import 'package:flutter_club_connect/service/noticiasservice.dart';
 import 'package:flutter_club_connect/models/noticia.dart';
 import 'package:flutter_club_connect/pages/public/detallenoticia.dart';
 import 'package:flutter/services.dart'; // para SystemNavigator.pop()
+import 'ajustes.dart';  // Ajustá la ruta según corresponda
 import '/utils/styles.dart';
 
 
@@ -37,6 +38,13 @@ Future<void> _refreshNews() async {
   await _noticiasFuture;
 }
 
+  ThemeMode _themeMode = ThemeMode.system;
+
+  void _cambiarTema(ThemeMode modo) {
+    setState(() {
+      _themeMode = modo;
+    });
+  }
 
 
   @override
@@ -249,6 +257,21 @@ Future<void> _refreshNews() async {
         },
       ),
 
+
+    //Ajustes
+    ListTile(
+      leading: const Icon(Icons.settings),
+      title: const Text('Ajustes'),
+      onTap: () {
+        Navigator.pop(context); // cierra el drawer
+        Navigator.push(context, MaterialPageRoute(builder: (_) => AjustesScreen(
+        currentThemeMode: _themeMode,
+        onThemeChanged: _cambiarTema,
+        )
+        )
+        );
+      }
+    ),
           //Cerrar App
           ListTile(
         leading: const Icon(Icons.exit_to_app, color: Colors.red),

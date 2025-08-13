@@ -16,26 +16,18 @@ import 'package:flutter_club_connect/pages/public/plantelfemenino.dart';
 import 'package:flutter_club_connect/pages/admin/admin_noticias_screen.dart';
 import 'package:flutter_club_connect/pages/admin/login_screen.dart';
 import 'package:flutter_club_connect/pages/public/contacto.dart';
-
-
-
-
-
-
+import 'package:flutter_club_connect/pages/public/ajustes.dart'; // Importa ajustes
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 var logger = Logger();
 
-
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
-
 
 /// 🔔 Manejador de notificaciones en segundo plano
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   logger.i('🔔 Notificación (fondo): ${message.notification?.title}');
 }
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,25 +36,22 @@ Future<void> main() async {
   );
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-
   runApp(const MyApp());
 }
 
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
-
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
-
 class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.system; // Estado inicial
+
   @override
   void initState() {
     super.initState();
-
 
     // 🟢 Pedir permiso para notificaciones
     FirebaseMessaging.instance.requestPermission().then((settings) {
@@ -74,10 +63,8 @@ class _MyAppState extends State<MyApp> {
       }
     });
 
-
     // 🔔 Suscribirse a un topic
     FirebaseMessaging.instance.subscribeToTopic('noticias');
-
 
     // 🔔 Escuchar notificaciones en primer plano
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -95,7 +82,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-
   /// 🔑 Obtener y mostrar el token FCM
   void _obtenerTokenFCM() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -104,17 +90,38 @@ class _MyAppState extends State<MyApp> {
     // También podés guardar el token en Firestore si querés
   }
 
+  void _cambiarTema(ThemeMode modo) {
+    setState(() {
+      _themeMode = modo;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Club 9 de Julio',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.red),
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      darkTheme: ThemeData(
+        primarySwatch: Colors.red,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black87,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      themeMode: _themeMode,
       scaffoldMessengerKey: scaffoldMessengerKey,
-      home:  const  PantallaCarga(),
-
-
+      home: const PantallaCarga(),
+      
       routes: {
         '/historia': (context) => const HistoriaScreen(),
         '/futbol-profesional': (context) => const NoticiasFutbolProfesionalScreen(),
@@ -129,14 +136,11 @@ class _MyAppState extends State<MyApp> {
         '/admin/noticias': (context) => const AdminNoticiasScreen(),
         '/admin/login_screen': (context) => const LoginScreen(),
         '/contacto': (context) => const ContactoScreen(),
-
-
-
+        '/ajustes': (context) => AjustesScreen(
+              currentThemeMode: _themeMode,
+              onThemeChanged: _cambiarTema,
+            ),
       },
     );
   }
 }
-
-
-
-
