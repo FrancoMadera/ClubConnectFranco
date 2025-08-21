@@ -1,22 +1,23 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_club_connect/pages/admin/admin_crear_noticia_screen.dart';
-import 'package:flutter_club_connect/pages/admin/admin_editar_noticia_screen.dart';
+import 'package:flutter_club_connect/pages/admin/gestion_noticias/admin_crear_noticia_screen.dart';
+import 'package:flutter_club_connect/pages/admin/gestion_noticias/admin_editar_noticia_screen.dart';
 
-
-class AdminNoticiasScreen extends StatelessWidget {
-  const AdminNoticiasScreen({super.key});
-
+class AdminNoticiaScreen extends StatelessWidget {
+  // Pantalla para que el administrador gestione las noticias existentes:
+  // las muestra, permite crear nuevas, editar o eliminar.
+  const AdminNoticiaScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Color institucional para mantener identidad visual consistente
     final rojoInstitucional = const Color(0xFFE20613);
-
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
+
+      // Barra superior con título e ícono representativo
       appBar: AppBar(
         backgroundColor: rojoInstitucional,
         centerTitle: true,
@@ -33,6 +34,8 @@ class AdminNoticiasScreen extends StatelessWidget {
           ],
         ),
       ),
+
+      // Botón flotante para crear una nueva noticia, navega a AdminCrearNoticiaScreen
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -47,25 +50,27 @@ class AdminNoticiasScreen extends StatelessWidget {
         ),
         backgroundColor: rojoInstitucional,
       ),
+
+      // Cuerpo con listado de noticias que se actualiza en tiempo real
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('noticias')
-            .orderBy('fecha', descending: true)
+            .orderBy('fecha', descending: true) // Ordenar por fecha descendente
             .snapshots(),
         builder: (context, snapshot) {
+          // Mientras se cargan los datos mostrar indicador
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-
+          // Mostrar mensaje de error si falla la carga
           if (snapshot.hasError) {
             return const Center(child: Text('❌ Error al cargar las noticias'));
           }
 
-
           final docs = snapshot.data!.docs;
 
-
+          // Si no hay noticias, mostrar mensaje informativo
           if (docs.isEmpty) {
             return const Center(
               child: Text(
@@ -75,7 +80,7 @@ class AdminNoticiasScreen extends StatelessWidget {
             );
           }
 
-
+          // ListView para mostrar cada noticia con su información y acciones
           return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             itemCount: docs.length,
@@ -84,12 +89,12 @@ class AdminNoticiasScreen extends StatelessWidget {
               final titulo = data['titulo'] as String? ?? 'Sin título';
               final imagenUrl = data['imagenUrl'] as String? ?? '';
               final timestamp = data['fecha'];
+              // Formatear fecha usando intl
               final fecha = timestamp is Timestamp
                   ? DateFormat('dd/MM/yyyy').format(timestamp.toDate())
                   : 'Sin fecha';
               final destacada = data['destacada'] as bool? ?? false;
               final categoria = data['categoria'] as String? ?? '';
-
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 20),
@@ -131,6 +136,7 @@ class AdminNoticiasScreen extends StatelessWidget {
                                   child: const Icon(Icons.image_not_supported, size: 60),
                                 ),
                         ),
+                        // Menú contextual con opciones para editar o eliminar noticia
                         PopupMenuButton<String>(
                           onSelected: (value) {
                             if (value == 'eliminar') {
@@ -171,8 +177,7 @@ class AdminNoticiasScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                // ignore: deprecated_member_use
-                                color: rojoInstitucional.withOpacity(0.1),
+                                color: rojoInstitucional.withAlpha(25), // color con transparencia para fondo categoría
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(

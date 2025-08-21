@@ -1,77 +1,114 @@
-import 'package:flutter_club_connect/models/integranteplantel.dart';
-
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import '../models/integranteplantel.dart';
 
 abstract class PlantelService {
   Future<List<Integrante>> obtenerJugadores();
   Future<List<Integrante>> obtenerCuerpoTecnico();
+
+  Future<void> agregarIntegrante(Integrante integrante);
+  Future<void> eliminarIntegrante(String id);
 }
 
+class FirebasePlantelService implements PlantelService {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-class PlantelProfesionalService implements PlantelService {
-  @override
-  Future<List<Integrante>> obtenerJugadores() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Integrante(id: 'p1', nombre: 'Juan Pérez', rol: 'Delantero'),
-      Integrante(id: 'p2', nombre: 'Carlos Gómez', rol: 'Defensor'),
-      Integrante(id: 'p3', nombre: 'Luis Martínez', rol: 'Mediocampista'),
-    ];
+  FirebasePlantelService() {
+    _db.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
   }
 
+  @override
+  Future<List<Integrante>> obtenerJugadores() async {
+    return _obtenerIntegrantesPorTipo('jugadores');
+  }
 
   @override
   Future<List<Integrante>> obtenerCuerpoTecnico() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Integrante(id: 't1', nombre: 'Roberto Díaz', rol: 'Entrenador'),
-      Integrante(id: 't2', nombre: 'Martín Ruiz', rol: 'Preparador Físico'),
-    ];
-  }
-}
-
-
-class PlantelAmateurService implements PlantelService {
-  @override
-  Future<List<Integrante>> obtenerJugadores() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Integrante(id: 'a1', nombre: 'María López', rol: 'Mediocampista'),
-      Integrante(id: 'a2', nombre: 'Jorge Martínez', rol: 'Defensor'),
-      Integrante(id: 'a3', nombre: 'Ana García', rol: 'Delantera'),
-    ];
+    return _obtenerIntegrantesPorTipo('cuerpo_tecnico');
   }
 
+  Future<List<Integrante>> _obtenerIntegrantesPorTipo(String tipo) async {
+    try {
+      final snapshot = await _db
+          .collection('plantel_profesional')
+          .where('tipo', isEqualTo: tipo)
+          .orderBy('apellido')
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(const Duration(seconds: 15));
 
-  @override
-  Future<List<Integrante>> obtenerCuerpoTecnico() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Integrante(id: 't3', nombre: 'Laura Fernández', rol: 'Entrenadora'),
-      Integrante(id: 't4', nombre: 'Pablo Sánchez', rol: 'Preparador Físico'),
-    ];
+      return snapshot.docs
+          .map((doc) {
+            try {
+              return Integrante.fromDocument(doc.id, doc.data());
+            } catch (e) {
+              debugPrint('❌ Error al parsear integrante ${doc.id}: $e');
+              return null;
+            }
+          })
+          .whereType<Integrante>()
+          .toList();
+    } on FirebaseException catch (e) {
+      debugPrint('🔥 Firestore error: ${e.code} - ${e.message}');
+      // Intentar traer de cache
+      final cached = await _db
+          .collection('plantel_profesional')
+          .where('tipo', isEqualTo: tipo)
+          .orderBy('apellido')
+          .get(const GetOptions(source: Source.cache));
+
+      if (cached.docs.isNotEmpty) {
+        return cached.docs
+            .map((doc) {
+              try {
+                return Integrante.fromDocument(doc.id, doc.data());
+              } catch (e) {
+                debugPrint('❌ Error cacheando integrante ${doc.id}: $e');
+                return null;
+              }
+            })
+            .whereType<Integrante>()
+            .toList();
+      }
+      throw Exception(
+        'No se pudieron cargar los integrantes. Verifica tu conexión.',
+      );
+    } catch (e) {
+      debugPrint('💥 Error general: $e');
+      throw Exception('Error al cargar integrantes');
+    }
   }
-}
 
-
-class PlantelFemeninoService implements PlantelService {
   @override
-  Future<List<Integrante>> obtenerJugadores() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Integrante(id: 'f1', nombre: 'Sofía Ramírez', rol: 'Delantera'),
-      Integrante(id: 'f2', nombre: 'Valeria Gómez', rol: 'Mediocampista'),
-      Integrante(id: 'f3', nombre: 'Florencia Díaz', rol: 'Defensora'),
-    ];
+  Future<void> agregarIntegrante(Integrante integrante) async {
+    try {
+      await _db.collection('plantel_profesional').add({
+        'nombre': integrante.nombre,
+        'apellido': integrante.apellido,
+        'puesto': integrante.puesto,
+        'edad': integrante.edad,
+        'fechaNacimiento': Timestamp.fromDate(integrante.fechaNacimiento),
+        'lugarNacimiento': integrante.lugarNacimiento,
+        'altura': integrante.altura,
+        'imagenUrl': integrante.imagenUrl ?? '',
+        'tipo': integrante.puesto.toLowerCase().contains('entrenador') || integrante.puesto.toLowerCase().contains('preparador') ? 'cuerpo_tecnico' : 'jugadores',
+        'fechaRegistro': Timestamp.now(),
+      });
+    } catch (e) {
+      debugPrint('Error agregando integrante: $e');
+      throw Exception('No se pudo agregar el integrante');
+    }
   }
 
-
   @override
-  Future<List<Integrante>> obtenerCuerpoTecnico() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Integrante(id: 't5', nombre: 'Marta Pérez', rol: 'Entrenadora'),
-      Integrante(id: 't6', nombre: 'Carolina Silva', rol: 'Preparadora Física'),
-    ];
+  Future<void> eliminarIntegrante(String id) async {
+    try {
+      await _db.collection('plantel_profesional').doc(id).delete();
+    } catch (e) {
+      debugPrint('Error eliminando integrante $id: $e');
+      throw Exception('No se pudo eliminar el integrante');
+    }
   }
 }

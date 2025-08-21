@@ -45,7 +45,4 @@ flutter:
   assets:
     - images/escudo.jpeg
     - images/futbol.jpeg
-    - images/basquet.jpeg
-    - images/voley.jpeg
-    - images/hockey.jpeg
-    - images/tenis.jpeg
+  

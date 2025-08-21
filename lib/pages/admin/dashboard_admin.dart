@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import '/utils/styles.dart';
+// Importa la pantalla correcta del plantel profesional
+
+import 'package:flutter_club_connect/pages/admin/admin_plantel_profesional_screen.dart';
+
 
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
-
   @override
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
- 
-  // Aquí podrían ir los futuros para cargar datos administrativos, estadísticas, etc
-  // Por ejemplo, número de noticias, usuarios activos, etc.
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +34,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             icon: const Icon(Icons.refresh),
             color: Colors.white,
             onPressed: () {
-              // Aquí se podría refrescar datos administrativos
               setState(() {});
             },
             tooltip: 'Refrescar Datos',
@@ -49,10 +45,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-
   Widget _buildAdminDrawer(BuildContext context) {
     final Color redColor = const Color(0xFFB71C1C);
-
 
     return Drawer(
       child: ListView(
@@ -86,7 +80,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
 
-
           // Gestión Noticias
           ListTile(
             leading: Icon(Icons.article, color: redColor),
@@ -99,22 +92,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Navigator.pushNamed(context, '/admin/noticias');
             },
           ),
-
-
-          
-          // Gestión Eventos
-         /* ListTile(
-            leading: Icon(Icons.event, color: redColor),
-            title: const Text(
-              'Gestionar Eventos',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/admin/eventos');
-            },
-          ),*/
-
 
           // Gestión Planteles
           ExpansionTile(
@@ -130,7 +107,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 title: const Text('Fútbol Profesional'),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, '/admin/plantel/futbol-profesional');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:  (context) => const AdminPlantelProfesionalScreen(),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -154,21 +136,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ],
           ),
 
-
-          /*// Gestión Multimedia
-          ListTile(
-            leading: Icon(Icons.perm_media, color: redColor),
-            title: const Text(
-              'Gestionar Multimedia',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/admin/multimedia');
-            },
-          ),*/
-
-
           // Configuración general
           ListTile(
             leading: Icon(Icons.settings, color: redColor),
@@ -186,9 +153,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-
   Widget _buildDashboardBody() {
-    // Aquí podés poner estadísticas, botones rápidos o gráficos
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

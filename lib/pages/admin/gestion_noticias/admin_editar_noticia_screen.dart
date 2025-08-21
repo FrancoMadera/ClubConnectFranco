@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-
 class AdminEditarNoticiaScreen extends StatefulWidget {
   final DocumentSnapshot noticiaDoc;
 
-
   const AdminEditarNoticiaScreen({super.key, required this.noticiaDoc});
-
 
   @override
   State<AdminEditarNoticiaScreen> createState() => _AdminEditarNoticiaScreenState();
 }
-
 
 class _AdminEditarNoticiaScreenState extends State<AdminEditarNoticiaScreen> {
   final _formKey = GlobalKey<FormState>();
@@ -21,7 +17,6 @@ class _AdminEditarNoticiaScreenState extends State<AdminEditarNoticiaScreen> {
   late TextEditingController _contenidoController;
   late TextEditingController _categoriaController;
   bool _destacada = false;
-
 
   @override
   void initState() {
@@ -33,7 +28,6 @@ class _AdminEditarNoticiaScreenState extends State<AdminEditarNoticiaScreen> {
     _destacada = data['destacada'] ?? false;
   }
 
-
   @override
   void dispose() {
     _tituloController.dispose();
@@ -41,7 +35,6 @@ class _AdminEditarNoticiaScreenState extends State<AdminEditarNoticiaScreen> {
     _categoriaController.dispose();
     super.dispose();
   }
-
 
   Future<void> _guardarCambios() async {
     if (_formKey.currentState!.validate()) {
@@ -53,19 +46,15 @@ class _AdminEditarNoticiaScreenState extends State<AdminEditarNoticiaScreen> {
           'destacada': _destacada,
         });
 
-
         if (!mounted) return;
-
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cambios guardados exitosamente')),
         );
 
-
         Navigator.pop(context);
       } catch (e) {
         if (!mounted) return;
-
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al guardar cambios: $e')),
@@ -74,13 +63,11 @@ class _AdminEditarNoticiaScreenState extends State<AdminEditarNoticiaScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final data = widget.noticiaDoc.data() as Map<String, dynamic>;
     final fecha = (data['fecha'] as Timestamp).toDate();
     final imagenUrl = data['imagenUrl'] ?? '';
-
 
     return Scaffold(
       appBar: AppBar(

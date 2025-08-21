@@ -13,10 +13,13 @@ import 'package:flutter_club_connect/pages/public/plantelamateur.dart';
 import 'package:flutter_club_connect/pages/public/noticiafutbolamateur.dart';
 import 'package:flutter_club_connect/pages/public/noticiafutbolfemenino.dart';
 import 'package:flutter_club_connect/pages/public/plantelfemenino.dart';
-import 'package:flutter_club_connect/pages/admin/admin_noticias_screen.dart';
+import 'package:flutter_club_connect/pages/admin/gestion_noticias/admin_noticias_screen.dart';
 import 'package:flutter_club_connect/pages/admin/login_screen.dart';
 import 'package:flutter_club_connect/pages/public/contacto.dart';
-import 'package:flutter_club_connect/pages/public/ajustes.dart'; // Importa ajustes
+import 'package:flutter_club_connect/pages/public/ajustes.dart'; 
+import 'package:flutter_club_connect/pages/public/todaslasnoticias.dart';
+//import 'package:flutter_club_connect/widgets/appmenudrawer.dart';
+
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 var logger = Logger();
@@ -125,12 +128,12 @@ class _MyAppState extends State<MyApp> {
         '/futbol-femenino/noticias': (context) => const NoticiasFutbolFemeninoScreen(),
         '/futbol-femenino/plantel': (context) => const PlantelYCuerpoTecnicoFutbolFemeninoScreen(),
         '/admin': (context) => const AdminDashboardScreen(),
-        '/admin/noticias': (context) => const AdminNoticiasScreen(),
+        '/admin/noticias': (context) => const AdminNoticiaScreen(),
         '/admin/login_screen': (context) => const LoginScreen(),
         '/contacto': (context) => const ContactoScreen(),
-        '/ajustes': (context) => AjustesScreen(
-              
-            ),
+        '/ajustes': (context) => AjustesScreen(),
+        '/todas-las-noticias': (context) => const TodasNoticiasScreen(),
+
       },
     );
   }

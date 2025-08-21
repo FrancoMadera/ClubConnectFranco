@@ -8,6 +8,7 @@ class AjustesScreen extends StatefulWidget {
   const AjustesScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AjustesScreenState createState() => _AjustesScreenState();
 }
 

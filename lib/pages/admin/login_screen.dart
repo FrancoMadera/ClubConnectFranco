@@ -1,37 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _loading = false;
+  bool _obscurePassword = true;
+  final _focusNodeEmail = FocusNode();
+  final _focusNodePassword = FocusNode();
 
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeOutBack),
+    ));
+
+    _animationController.forward();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _focusNodeEmail.dispose();
+    _focusNodePassword.dispose();
+    _animationController.dispose();
     super.dispose();
   }
-
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-
     setState(() => _loading = true);
-
+    await Future.delayed(const Duration(milliseconds: 300));
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -39,171 +67,156 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/admin');
     } on FirebaseAuthException catch (e) {
-      final mensajeError = _getMensajeError(e.code);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(mensajeError),
-          backgroundColor: Colors.red.shade800,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Error inesperado. Intenta de nuevo.'),
-          backgroundColor: Colors.red.shade800,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showErrorSnackbar(_getMensajeError(e.code));
+    } catch (_) {
+      _showErrorSnackbar('Error inesperado. Intenta de nuevo.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        padding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
 
   String _getMensajeError(String code) {
     switch (code) {
-      case 'invalid-email':
-        return 'Correo electrónico inválido.';
-      case 'user-not-found':
-        return 'No existe un usuario con ese correo.';
-      case 'wrong-password':
-        return 'Contraseña incorrecta.';
-      case 'user-disabled':
-        return 'Este usuario ha sido deshabilitado.';
-      default:
-        return 'Error al iniciar sesión.';
+      case 'invalid-email': return 'Correo electrónico inválido';
+      case 'user-not-found': return 'Usuario no encontrado';
+      case 'wrong-password': return 'Contraseña incorrecta';
+      case 'user-disabled': return 'Usuario deshabilitado';
+      case 'too-many-requests': return 'Demasiados intentos. Intenta más tarde';
+      default: return 'Error al iniciar sesión';
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final rojoInstitucional = const Color(0xFFE20613);
+    final colorPrimario = const Color(0xFFE20613);
+    final colorSecundario = Colors.grey.shade100;
+    final colorTexto = Colors.grey.shade800;
 
-
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('Acceso de Administrador'),
-        centerTitle: true,
-        backgroundColor: rojoInstitucional,
-        foregroundColor: Colors.white,
-        elevation: 0,
+    return Theme(
+      data: Theme.of(context).copyWith(
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: colorPrimario, width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+          ),
+          // ignore: deprecated_member_use
+          labelStyle: TextStyle(color: colorTexto.withOpacity(0.7)),
+          floatingLabelStyle: TextStyle(color: colorPrimario),
+        ),
       ),
-      body: GestureDetector(
-        // Para ocultar el teclado al tocar fuera
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-            child: Card(
-              elevation: 10,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-              // ignore: deprecated_member_use
-              shadowColor: rojoInstitucional.withOpacity(0.3),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Form(
-                  key: _formKey,
+      child: Scaffold(
+        backgroundColor: colorSecundario,
+        body: SafeArea(
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Iniciar Sesión',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: rojoInstitucional,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: 'Correo electrónico',
-                          prefixIcon: const Icon(Icons.email_outlined),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(color: rojoInstitucional, width: 2),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Colors.red),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Ingrese su correo electrónico';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Correo inválido';
-                          }
-                          return null;
-                        },
-                      ),
                       const SizedBox(height: 20),
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Contraseña',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(color: rojoInstitucional, width: 2),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Colors.red),
+                      Hero(
+                        tag: 'app-logo',
+                        child: Image.asset(
+                          'images/escudo.jpeg',
+                          height: 120,
+                          width: 120,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      Card(
+                        elevation: 8,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(28),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Acceso Administrativo',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    color: colorPrimario,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 28),
+                                _buildEmailField(colorPrimario),
+                                const SizedBox(height: 20),
+                                _buildPasswordField(colorPrimario),
+                                const SizedBox(height: 32),
+                                _buildLoginButton(colorPrimario),
+                                const SizedBox(height: 16),
+                                TextButton(
+                                  onPressed: _loading ? null : () {
+                                    // Lógica para recuperar contraseña
+                                  },
+                                  child: Text(
+                                    '¿Olvidaste tu contraseña?',
+                                    style: TextStyle(
+                                      // ignore: deprecated_member_use
+                                      color: colorPrimario.withOpacity(0.8),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        validator: (value) =>
-                            value == null || value.length < 6
-                                ? 'Mínimo 6 caracteres'
-                                : null,
                       ),
-                      const SizedBox(height: 36),
-                      _loading
-                          ? CircularProgressIndicator(
-                              color: rojoInstitucional,
-                            )
-                          : SizedBox(
-                              width: double.infinity,
-                              height: 52,
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.login, size: 24),
-                                label: const Text(
-                                  'Ingresar',
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: rojoInstitucional,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 5,
-                                ),
-                                onPressed: _login,
-                              ),
-                            ),
                     ],
                   ),
                 ),
@@ -214,6 +227,110 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  Widget _buildEmailField(Color primaryColor) {
+    return TextFormField(
+      controller: _emailController,
+      focusNode: _focusNodeEmail,
+      keyboardType: TextInputType.emailAddress,
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+        labelText: 'Correo electrónico',
+        prefixIcon: Icon(Icons.email_outlined, color: primaryColor),
+        suffixIcon: _emailController.text.isNotEmpty
+            ? IconButton(
+                icon: Icon(Icons.clear, color: Colors.grey.shade500),
+                onPressed: () => setState(() => _emailController.clear()),
+              )
+            : null,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Ingresa tu correo electrónico';
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return 'Correo electrónico inválido';
+        }
+        return null;
+      },
+      onChanged: (_) => setState(() {}),
+    );
+  }
+
+  Widget _buildPasswordField(Color primaryColor) {
+    return TextFormField(
+      controller: _passwordController,
+      focusNode: _focusNodePassword,
+      obscureText: _obscurePassword,
+      textInputAction: TextInputAction.done,
+      decoration: InputDecoration(
+        labelText: 'Contraseña',
+        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_passwordController.text.isNotEmpty)
+              IconButton(
+                icon: Icon(Icons.clear, color: Colors.grey.shade500),
+                onPressed: () => setState(() => _passwordController.clear()),
+              ),
+            IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: Colors.grey.shade500,
+              ),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+          ],
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Ingresa tu contraseña';
+        }
+        if (value.length < 6) {
+          return 'Mínimo 6 caracteres';
+        }
+        return null;
+      },
+      onFieldSubmitted: (_) => _login(),
+      onChanged: (_) => setState(() {}),
+    );
+  }
+
+  Widget _buildLoginButton(Color primaryColor) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        onPressed: _loading ? null : _login,
+        child: _loading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Colors.white,
+                ),
+              )
+            : const Text(
+                'INICIAR SESIÓN',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                ),
+              ),
+      ),
+    );
+  }
 }
-
-
