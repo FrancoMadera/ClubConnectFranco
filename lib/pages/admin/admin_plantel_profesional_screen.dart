@@ -8,44 +8,29 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 
-/// Pantalla de administración del plantel profesional.
-/// Permite agregar, listar y eliminar jugadores de forma intuitiva
-/// con integración a Cloudinary para subir imágenes.
+
 class AdminPlantelProfesionalScreen extends StatefulWidget {
   const AdminPlantelProfesionalScreen({super.key});
 
+
   @override
-  State<AdminPlantelProfesionalScreen> createState() =>
-      _AdminPlantelProfesionalScreenState();
+  State<AdminPlantelProfesionalScreen> createState() => _AdminPlantelProfesionalScreenState();
 }
 
-class _AdminPlantelProfesionalScreenState
-    extends State<AdminPlantelProfesionalScreen> {
-  /// Lista de jugadores cargados desde Firestore
-  List<Integrante> jugadores = [];
 
-  // Controladores de formulario
+class _AdminPlantelProfesionalScreenState extends State<AdminPlantelProfesionalScreen> {
+  List<Integrante> jugadores = [];
   final _nombreController = TextEditingController();
   final _apellidoController = TextEditingController();
   final _puestoController = TextEditingController();
   final _edadController = TextEditingController();
   final _lugarNacimientoController = TextEditingController();
   final _alturaController = TextEditingController();
-
-  /// Fecha de nacimiento seleccionada
   DateTime? _fechaNacimiento;
-
-  /// Imagen seleccionada del jugador
   File? _imagen;
-
-  /// Logger para seguimiento de errores
   final Logger logger = Logger();
-
-  /// Indicador de carga de operaciones
   bool _isLoading = false;
 
-  /// Color institucional del club
-  final Color _colorRojoInstitucional = Colors.red.shade700;
 
   @override
   void initState() {
@@ -53,18 +38,7 @@ class _AdminPlantelProfesionalScreenState
     _cargarJugadores();
   }
 
-  @override
-  void dispose() {
-    _nombreController.dispose();
-    _apellidoController.dispose();
-    _puestoController.dispose();
-    _edadController.dispose();
-    _lugarNacimientoController.dispose();
-    _alturaController.dispose();
-    super.dispose();
-  }
 
-  /// Carga los jugadores desde Firestore ordenados por fecha de registro
   Future<void> _cargarJugadores() async {
     setState(() => _isLoading = true);
     try {
@@ -72,6 +46,7 @@ class _AdminPlantelProfesionalScreenState
           .collection('plantel_profesional')
           .orderBy('fechaRegistro', descending: true)
           .get();
+
 
       setState(() {
         jugadores = snapshot.docs.map((doc) {
@@ -91,13 +66,13 @@ class _AdminPlantelProfesionalScreenState
       });
     } catch (e) {
       logger.e('Error cargando jugadores: $e');
-      _mostrarSnackBar('Error al cargar jugadores', isError: true);
+      _mostrarError('Error al cargar jugadores');
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  /// Selecciona una imagen desde la galería
+
   Future<void> _seleccionarImagen() async {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
@@ -110,7 +85,7 @@ class _AdminPlantelProfesionalScreenState
     }
   }
 
-  /// Muestra el selector de fecha de nacimiento
+
   Future<void> _seleccionarFechaNacimiento(BuildContext context) async {
     final hoy = DateTime.now();
     final pickedDate = await showDatePicker(
@@ -120,24 +95,25 @@ class _AdminPlantelProfesionalScreenState
       lastDate: hoy,
     );
 
+
     if (pickedDate != null) {
       setState(() => _fechaNacimiento = pickedDate);
     }
   }
 
-  /// Sube la imagen seleccionada a Cloudinary
+
   Future<String?> _subirImagenACloudinary(File imagen) async {
     try {
       const cloudName = 'dqiqdsw5c';
       const uploadPreset = 'ml_default';
       final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-
+     
       final request = http.MultipartRequest('POST', url)
         ..fields['upload_preset'] = uploadPreset
         ..files.add(await http.MultipartFile.fromPath('file', imagen.path));
-
+     
       final response = await request.send();
-
+     
       if (response.statusCode == 200) {
         final responseData = await response.stream.bytesToString();
         final data = jsonDecode(responseData);
@@ -152,24 +128,25 @@ class _AdminPlantelProfesionalScreenState
     }
   }
 
-  /// Agrega un nuevo jugador al Firestore y actualiza la UI
+
   Future<void> _agregarJugador() async {
     if (!_validarFormulario()) return;
 
-    setState(() => _isLoading = true);
 
+    setState(() => _isLoading = true);
+   
     try {
       String? imagenUrl;
       if (_imagen != null) {
         imagenUrl = await _subirImagenACloudinary(_imagen!);
         if (imagenUrl == null) {
-          _mostrarSnackBar('Error al subir la imagen', isError: true);
+          _mostrarError('Error al subir la imagen');
           return;
         }
       }
 
-      final docRef =
-          await FirebaseFirestore.instance.collection('plantel_profesional').add({
+
+      final docRef = await FirebaseFirestore.instance.collection('plantel_profesional').add({
         'nombre': _nombreController.text.trim(),
         'apellido': _apellidoController.text.trim(),
         'puesto': _puestoController.text.trim(),
@@ -180,6 +157,7 @@ class _AdminPlantelProfesionalScreenState
         'imagenUrl': imagenUrl ?? '',
         'fechaRegistro': Timestamp.now(),
       });
+
 
       final nuevoJugador = Integrante(
         id: docRef.id,
@@ -193,21 +171,23 @@ class _AdminPlantelProfesionalScreenState
         imagenUrl: imagenUrl,
       );
 
+
       setState(() {
         jugadores.insert(0, nuevoJugador);
         _limpiarFormulario();
       });
 
-      _mostrarSnackBar('Jugador agregado correctamente');
+
+      _mostrarExito('Jugador agregado correctamente');
     } catch (e) {
       logger.e('Error al guardar jugador: $e');
-      _mostrarSnackBar('Error al guardar jugador', isError: true);
+      _mostrarError('Error al guardar jugador');
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  /// Valida los campos del formulario antes de guardar
+
   bool _validarFormulario() {
     if (_nombreController.text.trim().isEmpty ||
         _apellidoController.text.trim().isEmpty ||
@@ -216,26 +196,29 @@ class _AdminPlantelProfesionalScreenState
         _fechaNacimiento == null ||
         _lugarNacimientoController.text.trim().isEmpty ||
         _alturaController.text.trim().isEmpty) {
-      _mostrarSnackBar('Por favor completa todos los campos', isError: true);
+      _mostrarError('Por favor completa todos los campos');
       return false;
     }
+
 
     final edad = int.tryParse(_edadController.text.trim());
     if (edad == null || edad < 15 || edad > 50) {
-      _mostrarSnackBar('Edad debe ser entre 15 y 50 años', isError: true);
+      _mostrarError('Edad debe ser entre 15 y 50 años');
       return false;
     }
 
+
     final altura = double.tryParse(_alturaController.text.replaceAll(',', '.'));
     if (altura == null || altura < 1.5 || altura > 2.3) {
-      _mostrarSnackBar('Altura debe ser entre 1.50 y 2.30 m', isError: true);
+      _mostrarError('Altura debe ser entre 1.50 y 2.30 m');
       return false;
     }
+
 
     return true;
   }
 
-  /// Limpia todos los campos del formulario
+
   void _limpiarFormulario() {
     _nombreController.clear();
     _apellidoController.clear();
@@ -249,24 +232,52 @@ class _AdminPlantelProfesionalScreenState
     });
   }
 
-  /// Muestra un SnackBar profesional con opción de error o éxito
-  void _mostrarSnackBar(String mensaje, {bool isError = false}) {
+
+  void _mostrarExito(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje),
-        backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
+        backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
+
+  void _mostrarError(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _apellidoController.dispose();
+    _puestoController.dispose();
+    _edadController.dispose();
+    _lugarNacimientoController.dispose();
+    _alturaController.dispose();
+    super.dispose();
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    final rojoInstitucional = Colors.red.shade700;
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gestión de Plantel Profesional'),
-        backgroundColor: _colorRojoInstitucional,
+        backgroundColor: rojoInstitucional,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
@@ -280,7 +291,74 @@ class _AdminPlantelProfesionalScreenState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Formulario de agregar jugador
-                  _buildFormularioAgregarJugador(),
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'AGREGAR NUEVO JUGADOR',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildFormField(_nombreController, 'Nombre', Icons.person),
+                          const SizedBox(height: 12),
+                          _buildFormField(_apellidoController, 'Apellido', Icons.person_outline),
+                          const SizedBox(height: 12),
+                          _buildFormField(_puestoController, 'Puesto', Icons.sports_soccer),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildFormField(_edadController, 'Edad', Icons.cake,
+                                    keyboardType: TextInputType.number),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(child: _buildDateField(context)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildFormField(_lugarNacimientoController, 'Lugar de nacimiento', Icons.location_on),
+                          const SizedBox(height: 12),
+                          _buildFormField(_alturaController, 'Altura (m)', Icons.height,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true)),
+                          const SizedBox(height: 16),
+                          _buildImagePicker(),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: _agregarJugador,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: rojoInstitucional,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_circle_outline, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'AGREGAR JUGADOR',
+                                  style: TextStyle(fontSize: 16, letterSpacing: 0.5),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   // Listado de jugadores
                   const Padding(
@@ -303,79 +381,7 @@ class _AdminPlantelProfesionalScreenState
     );
   }
 
-  /// Widget modular del formulario para agregar jugador
-  Widget _buildFormularioAgregarJugador() {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text(
-              'AGREGAR NUEVO JUGADOR',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildFormField(_nombreController, 'Nombre', Icons.person),
-            const SizedBox(height: 12),
-            _buildFormField(_apellidoController, 'Apellido', Icons.person_outline),
-            const SizedBox(height: 12),
-            _buildFormField(_puestoController, 'Puesto', Icons.sports_soccer),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child:
-                      _buildFormField(_edadController, 'Edad', Icons.cake, keyboardType: TextInputType.number),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: _buildDateField(context)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildFormField(_lugarNacimientoController, 'Lugar de nacimiento', Icons.location_on),
-            const SizedBox(height: 12),
-            _buildFormField(_alturaController, 'Altura (m)', Icons.height,
-                keyboardType: TextInputType.numberWithOptions(decimal: true)),
-            const SizedBox(height: 16),
-            _buildImagePicker(),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _agregarJugador,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _colorRojoInstitucional,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_circle_outline, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'AGREGAR JUGADOR',
-                    style: TextStyle(fontSize: 16, letterSpacing: 0.5),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  /// Crea un TextFormField estilizado y reutilizable
   Widget _buildFormField(
     TextEditingController controller,
     String label,
@@ -403,7 +409,7 @@ class _AdminPlantelProfesionalScreenState
     );
   }
 
-  /// Selector de fecha modular
+
   Widget _buildDateField(BuildContext context) {
     return InkWell(
       onTap: () => _seleccionarFechaNacimiento(context),
@@ -441,7 +447,7 @@ class _AdminPlantelProfesionalScreenState
     );
   }
 
-  /// Selector de imagen modular
+
   Widget _buildImagePicker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,7 +488,7 @@ class _AdminPlantelProfesionalScreenState
     );
   }
 
-  /// Lista de jugadores modular con opción de editar/eliminar
+
   Widget _buildJugadoresList() {
     if (jugadores.isEmpty) {
       return Padding(
@@ -500,108 +506,107 @@ class _AdminPlantelProfesionalScreenState
       );
     }
 
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: jugadores.length,
       itemBuilder: (ctx, index) {
         final jugador = jugadores[index];
-        return _buildJugadorItem(ctx, jugador);
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                // ignore: deprecated_member_use
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Hero(
+                    tag: 'jugador-${jugador.id}',
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey.shade200, width: 2),
+                      ),
+                      child: ClipOval(
+                        child: jugador.imagenUrl != null && jugador.imagenUrl!.isNotEmpty
+                            ? Image.network(
+                                jugador.imagenUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _buildPlaceholderAvatar(),
+                              )
+                            : _buildPlaceholderAvatar(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${jugador.nombre} ${jugador.apellido}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          jugador.puesto,
+                          style: TextStyle(
+                            color: Colors.red.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${jugador.edad} años • ${jugador.altura.toStringAsFixed(2)} m',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Nac: ${DateFormat('dd/MM/yyyy').format(jugador.fechaNacimiento)}',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.more_vert, color: Colors.grey.shade500),
+                    onPressed: () => _showOptionsMenu(ctx, jugador),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
       },
     );
   }
 
-  /// Widget individual de jugador en la lista
-  Widget _buildJugadorItem(BuildContext context, Integrante jugador) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(13)
-            
-          ),
-        ],
-      ),
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Hero(
-                tag: 'jugador-${jugador.id}',
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade200, width: 2),
-                  ),
-                  child: ClipOval(
-                    child: jugador.imagenUrl != null && jugador.imagenUrl!.isNotEmpty
-                        ? Image.network(
-                            jugador.imagenUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _buildPlaceholderAvatar(),
-                          )
-                        : _buildPlaceholderAvatar(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${jugador.nombre} ${jugador.apellido}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      jugador.puesto,
-                      style: TextStyle(
-                        color: _colorRojoInstitucional,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${jugador.edad} años • ${jugador.altura.toStringAsFixed(2)} m',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Nac: ${DateFormat('dd/MM/yyyy').format(jugador.fechaNacimiento)}',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.more_vert, color: Colors.grey.shade500),
-                onPressed: () => _showOptionsMenu(context, jugador),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildPlaceholderAvatar() {
     return Container(
@@ -611,6 +616,7 @@ class _AdminPlantelProfesionalScreenState
       ),
     );
   }
+
 
   void _showOptionsMenu(BuildContext context, Integrante jugador) {
     showModalBottomSheet(
@@ -627,7 +633,7 @@ class _AdminPlantelProfesionalScreenState
               title: const Text('Editar Jugador'),
               onTap: () {
                 Navigator.pop(ctx);
-                _mostrarSnackBar('Funcionalidad de edición en desarrollo');
+                _editarJugador(context, jugador);
               },
             ),
             ListTile(
@@ -649,6 +655,13 @@ class _AdminPlantelProfesionalScreenState
     );
   }
 
+
+  void _editarJugador(BuildContext context, Integrante jugador) {
+    // Implementar lógica de edición
+    _mostrarError('Funcionalidad de edición en desarrollo');
+  }
+
+
   Future<void> _confirmarEliminacion(BuildContext context, Integrante jugador) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -669,6 +682,7 @@ class _AdminPlantelProfesionalScreenState
       ),
     );
 
+
     if (confirm == true) {
       try {
         setState(() => _isLoading = true);
@@ -676,15 +690,15 @@ class _AdminPlantelProfesionalScreenState
             .collection('plantel_profesional')
             .doc(jugador.id)
             .delete();
-
+       
         setState(() {
           jugadores.removeWhere((j) => j.id == jugador.id);
         });
-
-        _mostrarSnackBar('Jugador eliminado correctamente');
+       
+        _mostrarExito('Jugador eliminado correctamente');
       } catch (e) {
         logger.e('Error eliminando jugador: $e');
-        _mostrarSnackBar('Error al eliminar jugador', isError: true);
+        _mostrarError('Error al eliminar jugador');
       } finally {
         setState(() => _isLoading = false);
       }

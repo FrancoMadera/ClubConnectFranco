@@ -1,41 +1,52 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_club_connect/service/noticiasservice.dart';
 import 'package:flutter_club_connect/models/noticia.dart';
-import 'package:flutter_club_connect/pages/public/detallenoticia.dart';
+import 'package:flutter_club_connect/pages/public/noticia/detallenoticia.dart';
 import '/utils/styles.dart';
+import 'package:flutter_club_connect/pages/widget/appmenudrawer.dart'; // Drawer institucional
 
 
-class NoticiasFutbolFemeninoScreen extends StatefulWidget {
-  const NoticiasFutbolFemeninoScreen({super.key});
+class NoticiasFutbolAmateurScreen extends StatefulWidget {
+  const NoticiasFutbolAmateurScreen({super.key});
 
 
   @override
-  State<NoticiasFutbolFemeninoScreen> createState() =>
-      _NoticiasFutbolFemeninoScreenState();
+  State<NoticiasFutbolAmateurScreen> createState() =>
+      _NoticiasFutbolAmateurScreenState();
 }
 
 
-class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScreen> {
+class _NoticiasFutbolAmateurScreenState extends State<NoticiasFutbolAmateurScreen> {
+  // Servicio para obtener noticias desde Firestore
   final NoticiasService _noticiasService = FirebaseNoticiasService();
+
+
+  // Future que contendrá la lista de noticias filtradas
   late Future<List<Noticia>> _noticiasFuture;
 
 
   @override
   void initState() {
     super.initState();
-    _noticiasFuture = _obtenerNoticiasFutbolFemenino();
+    _noticiasFuture = _obtenerNoticiasFutbolAmateur();
   }
 
 
-  Future<List<Noticia>> _obtenerNoticiasFutbolFemenino() async {
+  /// Método para obtener únicamente las noticias de "Fútbol Amateur"
+  Future<List<Noticia>> _obtenerNoticiasFutbolAmateur() async {
     final todas = await _noticiasService.obtenerNoticias();
-    return todas.where((n) => n.categoria?.toLowerCase() == 'fútbol femenino').toList();
+    // Filtrar solo las noticias con categoria 'Fútbol Amateur' (insensible a mayúsculas/minúsculas)
+    return todas.where((n) =>
+        (n.categoria ?? '').toLowerCase() == 'fútbol amateur'.toLowerCase()
+    ).toList();
   }
 
 
+  /// Método para refrescar la lista de noticias
   void _refreshNews() {
     setState(() {
-      _noticiasFuture = _obtenerNoticiasFutbolFemenino();
+      _noticiasFuture = _obtenerNoticiasFutbolAmateur();
     });
   }
 
@@ -50,7 +61,7 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          'Noticias - Fútbol Femenino',
+          'Noticias - Fútbol Amateur',
           style: TextStyle(color: Colors.white),
         ),
         actions: [
@@ -60,6 +71,7 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
           ),
         ],
       ),
+      drawer: const AppMenuDrawer(), // Drawer institucional
       body: FutureBuilder<List<Noticia>>(
         future: _noticiasFuture,
         builder: (context, snapshot) {
@@ -78,6 +90,7 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
   }
 
 
+  /// Construye la lista de noticias
   Widget _buildNewsList(List<Noticia> noticias) {
     return RefreshIndicator(
       onRefresh: () async => _refreshNews(),
@@ -90,6 +103,7 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
   }
 
 
+  /// Construye cada tarjeta individual de noticia
   Widget _buildNewsCard(Noticia noticia) {
     return Card(
       elevation: 4,
@@ -104,6 +118,7 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
+              // Imagen de la noticia con placeholder por si falla
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
@@ -142,6 +157,7 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
   }
 
 
+  /// Navega a la pantalla de detalle de noticia
   void _navigateToDetail(Noticia noticia) {
     Navigator.push(
       context,
@@ -152,19 +168,21 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
   }
 
 
+  /// Widget cuando no hay noticias disponibles
   Widget _buildEmptyWidget() => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.article_outlined, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
-            Text('No hay noticias de fútbol femenino', style: Styles.newsDate),
+            Text('No hay noticias de fútbol amateur', style: Styles.newsDate),
             TextButton(onPressed: _refreshNews, child: const Text('Reintentar')),
           ],
         ),
       );
 
 
+  /// Widget cuando ocurre un error al cargar noticias
   Widget _buildErrorWidget(String error) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -178,5 +196,6 @@ class _NoticiasFutbolFemeninoScreenState extends State<NoticiasFutbolFemeninoScr
         ),
       );
 }
+
 
 

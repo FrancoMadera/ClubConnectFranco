@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
 class Integrante {
   final String id;
   final String nombre;
@@ -10,6 +11,7 @@ class Integrante {
   final String lugarNacimiento;
   final double altura;
   final String? imagenUrl;
+
 
   Integrante({
     required this.id,
@@ -22,6 +24,7 @@ class Integrante {
     required this.altura,
     this.imagenUrl,
   });
+
 
   // Método estático para crear un Integrante a partir de un documento Firestore
   factory Integrante.fromDocument(String id, Map<String, dynamic> data) {
@@ -42,6 +45,7 @@ class Integrante {
     );
   }
 
+
   // Opcional: Método para convertir a Map (útil para guardar en Firestore)
   Map<String, dynamic> toMap() {
     return {
@@ -56,3 +60,7 @@ class Integrante {
     };
   }
 }
+
+
+
+

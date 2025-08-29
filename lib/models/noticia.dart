@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
+
+
 class Noticia {
   final String id;
   final String titulo;
@@ -7,6 +10,12 @@ class Noticia {
   final DateTime fecha;
   final String contenido;
   final String? categoria;
+
+
+
+
+
+
 
 
   Noticia({
@@ -17,6 +26,12 @@ class Noticia {
     required this.contenido,
     this.categoria,
   });
+
+
+
+
+
+
 
 
   factory Noticia.fromDocument(String id, Map<String, dynamic> json) {
@@ -30,3 +45,5 @@ class Noticia {
   );
 }
 }
+
+

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_club_connect/models/noticia.dart';
 
 
+// 🔴 Import del Drawer reutilizable
+import 'package:flutter_club_connect/pages/widget/appmenudrawer.dart';
+
+
 class DetalleNoticiaScreen extends StatelessWidget {
   final Noticia noticia;
 
@@ -29,11 +33,16 @@ class DetalleNoticiaScreen extends StatelessWidget {
           ),
         ),
       ),
+
+
+      // 🔹 Aquí agregamos el Drawer
+      drawer: const AppMenuDrawer(),
+
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen principal
             Stack(
               children: [
                 AspectRatio(
@@ -55,8 +64,7 @@ class DetalleNoticiaScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      // ignore: deprecated_member_use
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withAlpha(153),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -67,20 +75,16 @@ class DetalleNoticiaScreen extends StatelessWidget {
                 )
               ],
             ),
-
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Categoría
                   if (noticia.categoria != null)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        // ignore: deprecated_member_use
-                        color: rojoInstitucional.withOpacity(0.1),
+                        color: rojoInstitucional.withAlpha(26),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -93,9 +97,6 @@ class DetalleNoticiaScreen extends StatelessWidget {
                       ),
                     ),
                   const SizedBox(height: 12),
-
-
-                  // Título
                   Text(
                     noticia.titulo,
                     style: const TextStyle(
@@ -105,9 +106,6 @@ class DetalleNoticiaScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-
-                  // Contenido
                   Text(
                     noticia.contenido,
                     style: const TextStyle(
@@ -135,5 +133,6 @@ class DetalleNoticiaScreen extends StatelessWidget {
     return '$day/$month/$year $hour:$minute';
   }
 }
+
 
 

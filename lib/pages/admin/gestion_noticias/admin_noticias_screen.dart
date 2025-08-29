@@ -4,18 +4,22 @@ import 'package:intl/intl.dart';
 import 'package:flutter_club_connect/pages/admin/gestion_noticias/admin_crear_noticia_screen.dart';
 import 'package:flutter_club_connect/pages/admin/gestion_noticias/admin_editar_noticia_screen.dart';
 
-class AdminNoticiaScreen extends StatelessWidget {
+
+class AdminNoticiasScreen extends StatelessWidget {
   // Pantalla para que el administrador gestione las noticias existentes:
   // las muestra, permite crear nuevas, editar o eliminar.
-  const AdminNoticiaScreen({super.key});
+  const AdminNoticiasScreen({super.key});
+
 
   @override
   Widget build(BuildContext context) {
     // Color institucional para mantener identidad visual consistente
     final rojoInstitucional = const Color(0xFFE20613);
 
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
+
 
       // Barra superior con título e ícono representativo
       appBar: AppBar(
@@ -35,6 +39,7 @@ class AdminNoticiaScreen extends StatelessWidget {
         ),
       ),
 
+
       // Botón flotante para crear una nueva noticia, navega a AdminCrearNoticiaScreen
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -51,6 +56,7 @@ class AdminNoticiaScreen extends StatelessWidget {
         backgroundColor: rojoInstitucional,
       ),
 
+
       // Cuerpo con listado de noticias que se actualiza en tiempo real
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -63,12 +69,15 @@ class AdminNoticiaScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
+
           // Mostrar mensaje de error si falla la carga
           if (snapshot.hasError) {
             return const Center(child: Text('❌ Error al cargar las noticias'));
           }
 
+
           final docs = snapshot.data!.docs;
+
 
           // Si no hay noticias, mostrar mensaje informativo
           if (docs.isEmpty) {
@@ -79,6 +88,7 @@ class AdminNoticiaScreen extends StatelessWidget {
               ),
             );
           }
+
 
           // ListView para mostrar cada noticia con su información y acciones
           return ListView.builder(
@@ -95,6 +105,7 @@ class AdminNoticiaScreen extends StatelessWidget {
                   : 'Sin fecha';
               final destacada = data['destacada'] as bool? ?? false;
               final categoria = data['categoria'] as String? ?? '';
+
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 20),
@@ -230,3 +241,5 @@ class AdminNoticiaScreen extends StatelessWidget {
     );
   }
 }
+
+

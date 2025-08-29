@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import '/utils/styles.dart';
 // Importa la pantalla correcta del plantel profesional
 
+
 import 'package:flutter_club_connect/pages/admin/admin_plantel_profesional_screen.dart';
+
+
+
 
 
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
+
   @override
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
+
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
@@ -45,8 +51,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
+
   Widget _buildAdminDrawer(BuildContext context) {
     final Color redColor = const Color(0xFFB71C1C);
+
 
     return Drawer(
       child: ListView(
@@ -80,6 +88,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
 
+
           // Gestión Noticias
           ListTile(
             leading: Icon(Icons.article, color: redColor),
@@ -92,6 +101,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Navigator.pushNamed(context, '/admin/noticias');
             },
           ),
+
 
           // Gestión Planteles
           ExpansionTile(
@@ -136,6 +146,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ],
           ),
 
+
           // Configuración general
           ListTile(
             leading: Icon(Icons.settings, color: redColor),
@@ -152,6 +163,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
     );
   }
+
 
   Widget _buildDashboardBody() {
     return Center(
@@ -175,3 +187,5 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 }
+
+

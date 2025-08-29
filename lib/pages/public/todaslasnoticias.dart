@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_club_connect/models/noticia.dart';
 import 'package:flutter_club_connect/service/noticiasservice.dart';
-import 'detallenoticia.dart';
+import 'noticia/detallenoticia.dart';
 import '/utils/styles.dart';
 
 class TodasNoticiasScreen extends StatefulWidget {

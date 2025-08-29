@@ -1,39 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+
+/// Pantalla de Login Administrativo
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+  // Formulario y controladores de campos
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false;
-  bool _obscurePassword = true;
+
+
+  // Estados de la UI
+  bool _loading = false; // Indica si se está procesando login
+  bool _obscurePassword = true; // Para ocultar/mostrar la contraseña
+
+
+  // FocusNodes para manejar el enfoque en campos
   final _focusNodeEmail = FocusNode();
   final _focusNodePassword = FocusNode();
 
+
+  // Animaciones
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+
   @override
   void initState() {
     super.initState();
+
+
+    // Inicialización del AnimationController
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
 
+
+    // Fade de entrada
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
     );
 
+
+    // Slide desde abajo
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.2),
       end: Offset.zero,
@@ -42,11 +63,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       curve: const Interval(0.2, 1.0, curve: Curves.easeOutBack),
     ));
 
+
     _animationController.forward();
   }
 
+
   @override
   void dispose() {
+    // Liberar recursos
     _emailController.dispose();
     _passwordController.dispose();
     _focusNodeEmail.dispose();
@@ -55,17 +79,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
+
+  /// Función de login usando FirebaseAuth
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
+
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300)); // Pequeña pausa para animaciones
+
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
 
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/admin');
@@ -78,6 +107,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
+
+  /// Muestra un snackbar de error profesional
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -102,22 +133,33 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
+
+  /// Traduce códigos de error de Firebase a mensajes legibles
   String _getMensajeError(String code) {
     switch (code) {
-      case 'invalid-email': return 'Correo electrónico inválido';
-      case 'user-not-found': return 'Usuario no encontrado';
-      case 'wrong-password': return 'Contraseña incorrecta';
-      case 'user-disabled': return 'Usuario deshabilitado';
-      case 'too-many-requests': return 'Demasiados intentos. Intenta más tarde';
-      default: return 'Error al iniciar sesión';
+      case 'invalid-email':
+        return 'Correo electrónico inválido';
+      case 'user-not-found':
+        return 'Usuario no encontrado';
+      case 'wrong-password':
+        return 'Contraseña incorrecta';
+      case 'user-disabled':
+        return 'Usuario deshabilitado';
+      case 'too-many-requests':
+        return 'Demasiados intentos. Intenta más tarde';
+      default:
+        return 'Error al iniciar sesión';
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
+    // Colores institucionales
     final colorPrimario = const Color(0xFFE20613);
     final colorSecundario = Colors.grey.shade100;
     final colorTexto = Colors.grey.shade800;
+
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -141,8 +183,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Colors.redAccent, width: 2),
           ),
-          // ignore: deprecated_member_use
-          labelStyle: TextStyle(color: colorTexto.withOpacity(0.7)),
+          // Reemplazamos withOpacity por withAlpha para evitar deprecación
+          labelStyle: TextStyle(color: colorTexto.withAlpha((0.7 * 255).toInt())),
           floatingLabelStyle: TextStyle(color: colorPrimario),
         ),
       ),
@@ -150,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         backgroundColor: colorSecundario,
         body: SafeArea(
           child: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
+            onTap: () => FocusScope.of(context).unfocus(), // Oculta teclado al tocar fuera
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(24),
@@ -200,14 +242,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 _buildLoginButton(colorPrimario),
                                 const SizedBox(height: 16),
                                 TextButton(
-                                  onPressed: _loading ? null : () {
-                                    // Lógica para recuperar contraseña
-                                  },
+                                  onPressed: _loading
+                                      ? null
+                                      : () {
+                                          // Aquí se podría implementar recuperación de contraseña
+                                        },
                                   child: Text(
                                     '¿Olvidaste tu contraseña?',
                                     style: TextStyle(
-                                      // ignore: deprecated_member_use
-                                      color: colorPrimario.withOpacity(0.8),
+                                      color: colorPrimario.withAlpha((0.8 * 255).toInt()),
                                       fontSize: 14,
                                     ),
                                   ),
@@ -228,6 +271,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
+
+  /// Campo de correo electrónico
   Widget _buildEmailField(Color primaryColor) {
     return TextFormField(
       controller: _emailController,
@@ -245,9 +290,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             : null,
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Ingresa tu correo electrónico';
-        }
+        if (value == null || value.isEmpty) return 'Ingresa tu correo electrónico';
         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
           return 'Correo electrónico inválido';
         }
@@ -257,6 +300,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
+
+  /// Campo de contraseña
   Widget _buildPasswordField(Color primaryColor) {
     return TextFormField(
       controller: _passwordController,
@@ -285,12 +330,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Ingresa tu contraseña';
-        }
-        if (value.length < 6) {
-          return 'Mínimo 6 caracteres';
-        }
+        if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
+        if (value.length < 6) return 'Mínimo 6 caracteres';
         return null;
       },
       onFieldSubmitted: (_) => _login(),
@@ -298,6 +339,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
+
+  /// Botón de login con indicador de carga
   Widget _buildLoginButton(Color primaryColor) {
     return SizedBox(
       width: double.infinity,
@@ -334,3 +377,5 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 }
+
+
