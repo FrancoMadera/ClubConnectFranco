@@ -105,7 +105,7 @@ class HistoriaScreen extends StatelessWidget {
           ),
 
 
-          // Contenido principal
+          //Contenido principal
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
